@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raung Fight Hub — Mat Madness 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --steel-1:#E4E6E8; --steel-2:#C3C7CB; --steel-3:#868C92; --steel-4:#4B5157;
+    --graphite:#16181A; --ember:#E0932E; --line:rgba(22,24,26,0.14); --line-strong:rgba(22,24,26,0.28);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--steel-1); color:var(--graphite); font-family:'Inter',sans-serif;}
+  .display{font-family:'Big Shoulders Display',sans-serif; text-transform:uppercase; font-weight:800;}
+  header{background:var(--graphite); color:#fff; padding:30px 24px 26px; text-align:center;}
+  header .brand{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--steel-3); text-transform:uppercase; margin-bottom:10px;}
+  header .brand span{color:var(--ember);}
+  header h1{font-size:clamp(24px,4.6vw,34px); margin:0 0 8px;}
+  header p{margin:0; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ember); text-transform:uppercase; letter-spacing:0.06em;}
+  .wrap{max-width:900px; margin:0 auto; padding:34px 20px 60px;}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;}
+  .count{font-family:'IBM Plex Mono',monospace; font-size:13px; color:rgba(22,24,26,0.6);}
+  select{padding:9px 12px; border:1px solid var(--line-strong); border-radius:2px; font-family:'Inter',sans-serif; font-size:13.5px; background:#fff;}
+  .card{background:#fff; border:1px solid var(--line-strong); padding:16px 18px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;}
+  .card .name{font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:18px; text-transform:uppercase;}
+  .card .sub{font-size:12.5px; color:rgba(22,24,26,0.55); font-family:'IBM Plex Mono',monospace;}
+  .badge{background:var(--steel-1); border:1px solid var(--line-strong); font-family:'IBM Plex Mono',monospace; font-size:11px; padding:5px 10px; text-transform:uppercase;}
+  .state{text-align:center; padding:60px 20px; color:rgba(22,24,26,0.5); font-size:14px;}
+  nav.topnav{background:var(--graphite); padding:14px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1);}
+  nav.topnav a{color:#fff; font-size:13px; font-weight:600; text-decoration:none; opacity:0.75;}
+  nav.topnav a:hover{opacity:1;}
+  nav.topnav .brandmini{font-family:'Big Shoulders Display',sans-serif; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.02em; font-size:15px;}
+  nav.topnav .brandmini span{color:var(--ember);}
+</style>
+</head>
+<body>
+  <nav class="topnav">
+    <span class="brandmini">RAUNG <span>FIGHT HUB</span></span>
+    <a href="index.html">← Kembali ke Beranda</a>
+  </nav>
+  <header>
+    <h1 class="display">Mat Madness 2026</h1>
+    <p>Daftar Peserta Terdaftar</p>
+  </header>
+
+  <div class="wrap">
+    <div class="toolbar">
+      <span class="count" id="countText">Memuat data...</span>
+      <select id="filterKelas"><option value="">Semua Kategori Kelas</option></select>
+    </div>
+    <div id="list"></div>
+  </div>
+
+<script>
+  // GANTI URL DI BAWAH INI DENGAN URL WEB APP APPS SCRIPT ANDA
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbyVllSc1_Dq-2QocikJep5D3c0N_ANxH2VtSftAsOLZ4-ESOF96B2luzfK7TcFjHPeS9g/exec";
+
+  let allData = [];
+
+  fetch(SHEET_URL)
+    .then(res => res.json())
+    .then(data => {
+      allData = data;
+      populateFilter(data);
+      render(data);
+    })
+    .catch(err => {
+      document.getElementById('list').innerHTML = '<div class="state">Gagal memuat data. Cek koneksi atau URL spreadsheet.</div>';
+      console.error(err);
+    });
+
+  function populateFilter(data){
+    const kelasSet = [...new Set(data.map(d => d["KATEGORI KELAS"]).filter(Boolean))];
+    const sel = document.getElementById('filterKelas');
+    kelasSet.forEach(k => {
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = k;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => {
+      const val = sel.value;
+      const filtered = val ? allData.filter(d => d["KATEGORI KELAS"] === val) : allData;
+      render(filtered);
+    });
+  }
+
+  function render(data){
+    const list = document.getElementById('list');
+    document.getElementById('countText').textContent = data.length + ' peserta terdaftar';
+    if(data.length === 0){
+      list.innerHTML = '<div class="state">Belum ada peserta pada kategori ini.</div>';
+      return;
+    }
+    list.innerHTML = data.map(d => `
+      <div class="card">
+        <div>
+          <div class="name">${d["NAMA LENGKAP"] || '-'}</div>
+          <div class="sub">${d["KLUB/CAMP/DOJO/SASANA"] || '-'}</div>
+        </div>
+        <div class="badge">${d["KATEGORI KELAS"] || '-'}</div>
+      </div>
+    `).join('');
+  }
+</script>
+</body>
+</html>
